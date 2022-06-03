@@ -1,0 +1,23 @@
+[package]
+name = "nftgen"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "nftgen"
+path = "src/lib.rs"
+
+[[bin]]
+name = "nftgen"
+path = "src/bin/main.rs"
+
+[dependencies]
+clap = { version = "3.1.18", features = [
+    "derive",
+    "unicode",
+    "wrap_help",
+] }
+color-eyre = "0.6.1"
+eyre = "0.6.8"
+image = "0.24.2"
+rand = "0.8.5"
