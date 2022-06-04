@@ -2,21 +2,26 @@ use crate::layer::{Layer, LayerGroup};
 
 use image::DynamicImage;
 
-pub struct ImageBuilder {
+pub struct ImageBuilder<'a> {
     pub image: DynamicImage,
+    pub layers: Vec<&'a Layer>,
 }
 
-impl ImageBuilder {
+impl<'a> ImageBuilder<'a> {
     pub fn new(width: u32, heigth: u32) -> Self {
         let image = DynamicImage::new_rgba16(width, heigth);
-        ImageBuilder { image }
+        ImageBuilder {
+            image,
+            layers: vec![],
+        }
     }
 
-    pub fn add(&mut self, layer: &Layer) {
-        image::imageops::overlay(&mut self.image, &layer.image, 0, 0)
+    pub fn add(&mut self, layer: &'a Layer) {
+        image::imageops::overlay(&mut self.image, &layer.image, 0, 0);
+        self.layers.push(layer);
     }
 
-    pub fn build(layer_groups: &Vec<LayerGroup>) -> DynamicImage {
+    pub fn build(layer_groups: &'a Vec<LayerGroup>) -> (DynamicImage, Vec<&'a Layer>) {
         let base = &layer_groups[0].pick().image;
         let width = base.width();
         let height = base.height();
@@ -27,6 +32,6 @@ impl ImageBuilder {
             builder.add(&layer);
         }
 
-        builder.image
+        (builder.image, builder.layers)
     }
 }
