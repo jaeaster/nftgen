@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, sync::atomic::AtomicU32};
 
 use color_eyre::eyre;
 
@@ -27,6 +27,7 @@ fn main() -> eyre::Result<()> {
     let mut layer_groups = get_layer_groups(&layers_path, &layers_order)?;
     layer_groups.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
+    let counter = AtomicU32::new(0);
     let results: eyre::Result<Vec<()>> = (0..nft_count)
         .into_par_iter()
         .map(|n| {
@@ -57,7 +58,8 @@ fn main() -> eyre::Result<()> {
             };
             fs::write(&metadata_file_path, metadata_json)?;
 
-            println!("Saved NFT to {:?}", image_file_path);
+            counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            println!("Saved {:?} / {} NFTs", counter, nft_count);
             Ok(())
         })
         .collect();
