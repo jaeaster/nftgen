@@ -15,6 +15,10 @@ pub struct NFTGenArgs {
     #[clap(short, long, value_hint = clap::ValueHint::DirPath)]
     pub layers_path: PathBuf,
 
+    /// path to root directory of NFT layers
+    #[clap(short, long, value_hint = clap::ValueHint::DirPath)]
+    pub output_path: PathBuf,
+
     /// Order of NFT layers from back to front
     #[clap(
         long,
