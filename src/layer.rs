@@ -3,7 +3,7 @@ use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 
 use color_eyre::eyre;
-use image::io::Reader as ImageReader;
+use eyre::Context;
 use image::DynamicImage;
 use rand::distributions::WeightedIndex;
 use rand::prelude::*;
@@ -13,6 +13,57 @@ pub struct Layer {
     pub name: String,
     pub image: DynamicImage,
     pub weight: u32,
+}
+
+impl Layer {
+    pub fn parse_layers_from_path(path: &Path) -> eyre::Result<Vec<Layer>> {
+        path.read_dir()?
+            .collect::<Result<Vec<DirEntry>, _>>()?
+            .into_iter()
+            .filter(|l| l.path().extension().unwrap_or_default() == "png")
+            .map(|image_file| Layer::try_from(image_file))
+            .collect::<Result<Vec<_>, _>>()
+    }
+
+    pub fn parse_weight_from_file_name(filename: &str) -> eyre::Result<u32> {
+        let weight_str = filename
+            .split_once('#')
+            .unwrap_or(("", ""))
+            .1
+            .split_once('.')
+            .unwrap_or(("", ""))
+            .0;
+
+        weight_str.parse::<u32>().wrap_err(format!(
+            "Invalid weight for layer with filename: {}",
+            filename
+        ))
+    }
+}
+
+impl TryFrom<DirEntry> for Layer {
+    type Error = eyre::Error;
+
+    fn try_from(entry: DirEntry) -> eyre::Result<Self> {
+        if let Some(name) = entry.path().file_name() {
+            match name.to_str() {
+                Some(name) => {
+                    if let Ok(image) = image::open(entry.path()) {
+                        Ok(Layer {
+                            name: name.to_string(),
+                            image,
+                            weight: Layer::parse_weight_from_file_name(name)?,
+                        })
+                    } else {
+                        eyre::bail!("Failed to open image: {}", entry.path().display());
+                    }
+                }
+                None => eyre::bail!("Invalid layer name: {}", entry.path().display()),
+            }
+        } else {
+            eyre::bail!("Invalid layer name: {}", entry.path().display());
+        }
+    }
 }
 
 /// Represents all of the values for a particular NFT layer group
@@ -25,48 +76,19 @@ pub struct LayerGroup {
 
 impl LayerGroup {
     pub fn new(layer_path: &Path, layers_order: &Vec<String>) -> eyre::Result<Self> {
-        let layers = layer_path
-            .read_dir()?
-            .collect::<Result<Vec<DirEntry>, _>>()?
-            .into_iter()
-            .filter(|l| l.path().extension().unwrap_or_default() == "png")
-            .map(|i| match ImageReader::open(i.path()) {
-                Ok(reader) => match i
-                    .file_name()
-                    .to_string_lossy()
-                    .split_once(".")
-                    .unwrap()
-                    .0
-                    .split_once("#")
-                {
-                    Some((name, weight)) => {
-                        (name.to_string(), weight.parse::<u32>().unwrap(), reader)
-                    }
-                    None => panic!("Invalid layer name: {}", i.path().display()),
-                },
-                Err(_) => panic!("Failed to open image file"),
-            })
-            .map(|(name, weight, r)| match r.decode() {
-                Ok(image) => Layer {
-                    name: name.to_string(),
-                    image,
-                    weight: weight,
-                },
-                Err(_) => panic!("Failed to decode image"),
-            })
-            .collect();
+        let layers = Layer::parse_layers_from_path(layer_path)?;
 
-        let layer_type = layer_path
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        let order = LayerGroup::get_order(&layer_type, layers_order)?;
-        Ok(LayerGroup {
-            layer_type,
-            layers,
-            order,
-        })
+        if let Some(layer_type_str) = layer_path.file_name() {
+            let layer_type = layer_type_str.to_string_lossy().to_string();
+            let order = LayerGroup::get_order(&layer_type, layers_order)?;
+            Ok(LayerGroup {
+                layer_type,
+                layers,
+                order,
+            })
+        } else {
+            eyre::bail!("Invalid layer type: {}", layer_path.display());
+        }
     }
 
     pub fn pick(&self) -> &Layer {
