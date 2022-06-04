@@ -1,6 +1,20 @@
---num 10
---layers-path "./layers"
---layers-order "Background","Face","Nose"
---collection-name "Dope Collection Name"
---description "A very cool collection"
---base-uri "ipfs://123"
+# Example
+# Can separate options that take a value with a newline
+--num
+10
+
+# Extra whitespace is allowed
+
+# Can separate options that take a value with an equals sign "="
+--layers-path=./layers
+
+# Be careful, separating by a space is not valid, e.g.
+# --output-path output
+
+--output-path
+output
+
+--layers-order=Background,Face,Nose
+--collection-name=Dope Collection Name
+--description=A very cool collection
+--base-uri=ipfs://123

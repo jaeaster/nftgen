@@ -3,7 +3,7 @@ use clap::Parser;
 use color_eyre::eyre;
 use std::{env, path::PathBuf};
 
-/// Arguments for nftgen CLI tool
+/// Generate images and metadata for NFTs by layering PNGs together.
 #[derive(Parser, Debug)]
 #[clap(name="nftgen", author, version, about, long_about = None, args_override_self = true)]
 pub struct NFTGenArgs {
