@@ -1,11 +1,11 @@
 use std::{fs, sync::atomic::AtomicU32};
 
 use color_eyre::eyre;
+use rayon::prelude::*;
 
 use nftgen::{
     args, image_builder::ImageBuilder, layer::get_layer_groups, metadata::MetadataBuilder,
 };
-use rayon::prelude::*;
 
 fn main() -> eyre::Result<()> {
     color_eyre::install()?;

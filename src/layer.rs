@@ -1,17 +1,18 @@
-use color_eyre::eyre;
+use std::cmp::Ordering;
 use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 
+use color_eyre::eyre;
 use image::io::Reader as ImageReader;
 use image::DynamicImage;
-
+use rand::distributions::WeightedIndex;
 use rand::prelude::*;
-use std::cmp::Ordering;
 
 /// Represents a value for single NFT layer
 pub struct Layer {
     pub name: String,
     pub image: DynamicImage,
+    pub weight: u32,
 }
 
 /// Represents all of the values for a particular NFT layer group
@@ -30,19 +31,27 @@ impl LayerGroup {
             .into_iter()
             .filter(|l| l.path().extension().unwrap_or_default() == "png")
             .map(|i| match ImageReader::open(i.path()) {
-                Ok(reader) => (
-                    i.file_name()
-                        .to_string_lossy()
-                        .split_once(".")
-                        .unwrap()
-                        .0
-                        .to_string(),
-                    reader,
-                ),
+                Ok(reader) => match i
+                    .file_name()
+                    .to_string_lossy()
+                    .split_once(".")
+                    .unwrap()
+                    .0
+                    .split_once("#")
+                {
+                    Some((name, weight)) => {
+                        (name.to_string(), weight.parse::<u32>().unwrap(), reader)
+                    }
+                    None => panic!("Invalid layer name: {}", i.path().display()),
+                },
                 Err(_) => panic!("Failed to open image file"),
             })
-            .map(|(name, r)| match r.decode() {
-                Ok(image) => Layer { name, image },
+            .map(|(name, weight, r)| match r.decode() {
+                Ok(image) => Layer {
+                    name: name.to_string(),
+                    image,
+                    weight: weight,
+                },
                 Err(_) => panic!("Failed to decode image"),
             })
             .collect();
@@ -53,7 +62,6 @@ impl LayerGroup {
             .to_string_lossy()
             .to_string();
         let order = LayerGroup::get_order(&layer_type, layers_order)?;
-        // let order = 0;
         Ok(LayerGroup {
             layer_type,
             layers,
@@ -62,8 +70,11 @@ impl LayerGroup {
     }
 
     pub fn pick(&self) -> &Layer {
+        let weights: Vec<_> = self.layers.iter().map(|l| l.weight).collect();
+        let dist = WeightedIndex::new(&weights).unwrap();
         let mut rng = rand::thread_rng();
-        &self.layers[rng.gen_range(0..self.layers.len())]
+
+        &self.layers[dist.sample(&mut rng)]
     }
 
     fn get_order(layer_type: &str, layers_order: &Vec<String>) -> eyre::Result<u8> {
