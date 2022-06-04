@@ -9,7 +9,7 @@ use std::{env, path::PathBuf};
 pub struct NFTGenArgs {
     /// Number of NFTs to generate
     #[clap(short, long)]
-    pub num: u32,
+    pub num: usize,
 
     /// path to root directory of NFT layers
     #[clap(short, long, value_hint = clap::ValueHint::DirPath)]
