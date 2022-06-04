@@ -12,6 +12,7 @@ name = "nftgen"
 path = "src/bin/main.rs"
 
 [dependencies]
+bstr = "0.2.17"
 clap = { version = "3.1.18", features = [
     "derive",
     "unicode",
@@ -20,4 +21,5 @@ clap = { version = "3.1.18", features = [
 color-eyre = "0.6.1"
 eyre = "0.6.8"
 image = "0.24.2"
+log = "0.4.17"
 rand = "0.8.5"

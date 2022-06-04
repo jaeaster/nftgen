@@ -1,0 +1,6 @@
+--num 10
+--layers-path "./layers"
+--layers-order "Background","Face","Nose"
+--collection-name "Dope Collection Name"
+--description "A very cool collection"
+--base-uri "ipfs://123"
