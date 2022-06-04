@@ -3,10 +3,7 @@ use std::{fs, sync::atomic::AtomicU32};
 use color_eyre::eyre;
 
 use nftgen::{
-    args,
-    image_builder::ImageBuilder,
-    layer::get_layer_groups,
-    metadata::{Attribute, Metadata},
+    args, image_builder::ImageBuilder, layer::get_layer_groups, metadata::MetadataBuilder,
 };
 use rayon::prelude::*;
 
@@ -35,21 +32,15 @@ fn main() -> eyre::Result<()> {
             let metadata_file_path = metadata_path.as_path().join(format!("{}", n));
 
             let (nft, layers) = ImageBuilder::build(&layer_groups);
-
-            let attributes: Vec<Attribute> = layers_order
-                .iter()
-                .zip(layers.iter().map(|&l| l.name.as_str()))
-                .map(|(layer_type, layer_name)| {
-                    Attribute::new(layer_type.to_string(), layer_name.to_string())
-                })
-                .collect();
-
-            let metadata = Metadata::new(
+            let metadata = MetadataBuilder::build(
+                n as u32,
                 &args.description,
-                format!("{} #{}", args.collection_name, n),
-                format!("{}/{}.png", args.base_uri, n),
-                attributes,
+                &args.collection_name,
+                &args.base_uri,
+                &layers_order,
+                &layers,
             );
+
             let metadata_json = serde_json::to_string(&metadata)?;
 
             match nft.save(&image_file_path) {

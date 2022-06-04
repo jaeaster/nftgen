@@ -1,3 +1,4 @@
+use crate::layer::Layer;
 use serde::{Deserialize, Serialize};
 
 /// The high level metadata representation of the NFT collection.
@@ -41,5 +42,33 @@ impl Attribute {
             trait_type: trait_type,
             value: value,
         }
+    }
+}
+
+pub struct MetadataBuilder {}
+
+impl MetadataBuilder {
+    pub fn build<'a>(
+        id: u32,
+        description: &'a str,
+        collection_name: &'a str,
+        base_uri: &'a str,
+        ordered_layers: &Vec<String>,
+        layers: &Vec<&'a Layer>,
+    ) -> Metadata<'a> {
+        let attributes: Vec<Attribute> = ordered_layers
+            .iter()
+            .zip(layers.iter().map(|&l| l.name.as_str()))
+            .map(|(layer_type, layer_name)| {
+                Attribute::new(layer_type.to_string(), layer_name.to_string())
+            })
+            .collect();
+
+        Metadata::new(
+            description,
+            format!("{} #{}", collection_name, id),
+            format!("{}/{}.png", base_uri, id),
+            attributes,
+        )
     }
 }
