@@ -6,6 +6,7 @@ use image::io::Reader as ImageReader;
 use image::DynamicImage;
 
 use rand::prelude::*;
+use std::cmp::Ordering;
 
 /// Represents a value for single NFT layer
 pub struct Layer {
@@ -18,10 +19,11 @@ pub struct Layer {
 pub struct LayerGroup {
     pub layer_type: String,
     pub layers: Vec<Layer>,
+    order: u8,
 }
 
 impl LayerGroup {
-    pub fn new(layer_path: &Path) -> eyre::Result<Self> {
+    pub fn new(layer_path: &Path, layers_order: &Vec<String>) -> eyre::Result<Self> {
         let layers = layer_path
             .read_dir()?
             .collect::<Result<Vec<DirEntry>, _>>()?
@@ -45,9 +47,17 @@ impl LayerGroup {
             })
             .collect();
 
+        let layer_type = layer_path
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        let order = LayerGroup::get_order(&layer_type, layers_order)?;
+        // let order = 0;
         Ok(LayerGroup {
-            layer_type: layer_path.to_string_lossy().to_string(),
+            layer_type,
             layers,
+            order,
         })
     }
 
@@ -55,14 +65,36 @@ impl LayerGroup {
         let mut rng = rand::thread_rng();
         &self.layers[rng.gen_range(0..self.layers.len())]
     }
+
+    fn get_order(layer_type: &str, layers_order: &Vec<String>) -> eyre::Result<u8> {
+        match layers_order.iter().position(|layer| *layer == layer_type) {
+            Some(order) => Ok(order as u8),
+            None => eyre::bail!("Layer type {} not found in layers order", layer_type),
+        }
+    }
 }
 
-pub fn get_layer_groups(layer_dir_root: &Path) -> eyre::Result<Vec<LayerGroup>> {
+impl PartialOrd for LayerGroup {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.order.partial_cmp(&other.order)
+    }
+}
+
+impl PartialEq for LayerGroup {
+    fn eq(&self, other: &Self) -> bool {
+        self.order == other.order
+    }
+}
+
+pub fn get_layer_groups(
+    layer_dir_root: &Path,
+    layers_order: &Vec<String>,
+) -> eyre::Result<Vec<LayerGroup>> {
     let layer_dirs = get_layer_dirs(layer_dir_root)?;
 
     layer_dirs
         .iter()
-        .map(|layer_dir| LayerGroup::new(layer_dir.as_path()))
+        .map(|layer_dir| LayerGroup::new(layer_dir.as_path(), layers_order))
         .collect()
 }
 
