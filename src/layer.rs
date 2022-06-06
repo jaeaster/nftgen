@@ -12,11 +12,11 @@ use rand::prelude::*;
 pub struct Layer {
     pub name: String,
     pub image: DynamicImage,
-    pub weight: u32,
+    weight: u32,
 }
 
 impl Layer {
-    pub fn parse_layers_from_path(path: &Path) -> eyre::Result<Vec<Layer>> {
+    fn parse_layers_from_path(path: &Path) -> eyre::Result<Vec<Layer>> {
         path.read_dir()?
             .collect::<Result<Vec<DirEntry>, _>>()?
             .into_iter()
@@ -25,7 +25,7 @@ impl Layer {
             .collect::<Result<Vec<_>, _>>()
     }
 
-    pub fn parse_weight_from_file_name(filename: &str) -> eyre::Result<u32> {
+    fn parse_weight_from_file_name(filename: &str) -> eyre::Result<u32> {
         let weight_str = filename
             .split_once('#')
             .unwrap_or(("", ""))
@@ -70,7 +70,7 @@ impl TryFrom<DirEntry> for Layer {
 /// e.g. Background, Foreground, etc.
 pub struct LayerGroup {
     pub layer_type: String,
-    pub layers: Vec<Layer>,
+    layers: Vec<Layer>,
     order: u8,
 }
 
