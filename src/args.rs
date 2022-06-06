@@ -12,11 +12,11 @@ pub struct NFTGenArgs {
     pub num: usize,
 
     /// path to root directory of NFT layers
-    #[clap(short, long, value_hint = clap::ValueHint::DirPath)]
+    #[clap(short, long, default_value="./layers", value_hint = clap::ValueHint::DirPath)]
     pub layers_path: PathBuf,
 
     /// path to root directory of NFT layers
-    #[clap(short, long, value_hint = clap::ValueHint::DirPath)]
+    #[clap(short, long, default_value="./nftgen-output", value_hint = clap::ValueHint::DirPath)]
     pub output_path: PathBuf,
 
     /// Order of NFT layers from back to front
