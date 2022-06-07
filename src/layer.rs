@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use color_eyre::eyre;
 use eyre::Context;
 use image::DynamicImage;
+use log;
 use rand::distributions::WeightedIndex;
 use rand::prelude::*;
 
@@ -21,7 +22,13 @@ impl Layer {
             .collect::<Result<Vec<DirEntry>, _>>()?
             .into_iter()
             .filter(|l| l.path().extension().unwrap_or_default() == "png")
-            .map(|image_file| Layer::try_from(image_file))
+            .map(|image_file| {
+                log::debug!(
+                    "Loading image from file: {}",
+                    image_file.path().to_string_lossy()
+                );
+                Layer::try_from(image_file)
+            })
             .collect::<Result<Vec<_>, _>>()
     }
 
@@ -34,10 +41,16 @@ impl Layer {
             .unwrap_or(("", ""))
             .0;
 
-        weight_str.parse::<u32>().wrap_err(format!(
-            "Invalid weight for layer with filename: {}",
-            filename
-        ))
+        match weight_str.parse::<u32>() {
+            Ok(weight) => Ok(weight),
+            Err(_) => {
+                log::warn!(
+                    "Invalid weight for layer with filename: {}. Using default weight of 1",
+                    filename
+                );
+                Ok(1)
+            }
+        }
     }
 }
 
@@ -124,6 +137,9 @@ pub fn get_layer_groups(
     layers_order: &Vec<String>,
 ) -> eyre::Result<Vec<LayerGroup>> {
     let layer_dirs = get_layer_dirs(layer_dir_root)?;
+    for dir in &layer_dirs {
+        log::info!("Found directory of layers: {}", dir.to_string_lossy());
+    }
 
     layer_dirs
         .iter()
