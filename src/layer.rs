@@ -8,6 +8,7 @@ use image::DynamicImage;
 use log;
 use rand::distributions::WeightedIndex;
 use rand::prelude::*;
+use rayon::prelude::*;
 
 /// Represents a value for single NFT layer
 pub struct Layer {
@@ -20,7 +21,7 @@ impl Layer {
     fn parse_layers_from_path(path: &Path) -> eyre::Result<Vec<Layer>> {
         path.read_dir()?
             .collect::<Result<Vec<DirEntry>, _>>()?
-            .into_iter()
+            .into_par_iter()
             .filter(|l| l.path().extension().unwrap_or_default() == "png")
             .map(|image_file| {
                 log::debug!(
