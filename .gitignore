@@ -1,7 +1,8 @@
 /target
 
-layers
+*layers
 .DS_Store
 config
 
 output
+
