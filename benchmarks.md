@@ -18,47 +18,50 @@ The benchmarks used the built-in shell function `time`, which measures CPU time 
 
 ## Conclusion
 
-nftgen is 2 - 3X faster than Hashlips Art Engine for N >= 100 in terms of real clock time.
+nftgen is 2 - 3X faster than Hashlips Art Engine for N >= 10 in terms of real clock time.
 nftgen uses significantly more CPU time as it parallelizes the workload to maximize the usage of multiple CPU cores.
 
 ## Results
 
-## N = 10
+| N      | Tool     | Clock Time (s) |
+| ------ | -------- | -------------- |
+| 10     | nftgen   | 2.859          |
+| 10     | Hashlips | 5.999          |
+| 100    | nftgen   | 21.988         |
+| 100    | Hashlips | 66.15          |
+| 1,000  | nftgen   | 221.53         |
+| 1,000  | Hashlips | 647.88         |
+| 10,000 | nftgen   | 3302.88        |
+| 10,000 | Hashlips | 6460.75        |
 
-### nftgen
+### N = 10
 
-`NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 10 21.89s user 0.77s system 792% cpu 2.859 total`
+- nftgen
+  `NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 10 21.89s user 0.77s system 792% cpu 2.859 total`
 
-### Hashlips
+- Hashlips
+  `yarn build 5.70s user 0.29s system 99% cpu 5.999 total`
 
-`yarn build 5.70s user 0.29s system 99% cpu 5.999 total`
+### N = 100
 
-## N = 100
+- nftgen
+  `NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 100 180.19s user 2.77s system 832% cpu 21.988 total`
 
-### nftgen
+- Hashlips
+  `yarn build 64.58s user 1.94s system 100% cpu 1:06.15 total`
 
-`NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 100 180.19s user 2.77s system 832% cpu 21.988 total`
+### N = 1000
 
-### Hashlips
+- nftgen
+  `NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 1000 1768.36s user 20.95s system 887% cpu 3:21.53 total`
 
-`yarn build 64.58s user 1.94s system 100% cpu 1:06.15 total`
+- Hashlips
+  `yarn build 635.19s user 17.88s system 100% cpu 10:47.88 total`
 
-## N = 1000
+### N = 10,000
 
-### nftgen
+- nftgen
+  `NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen 17644.56s user 199.67s system 540% cpu 55:02.88 total`
 
-`NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen -n 1000 1768.36s user 20.95s system 887% cpu 3:21.53 total`
-
-### Hashlips
-
-`yarn build 635.19s user 17.88s system 100% cpu 10:47.88 total`
-
-## N = 10,000
-
-### nftgen
-
-`NFTGEN_CONFIG_PATH=./config RUST_LOG=info target/release/nftgen 17644.56s user 199.67s system 540% cpu 55:02.88 total`
-
-### Hashlips
-
-`yarn build 6432.55s user 192.58s system 102% cpu 1:47:40.75 total`
+- Hashlips
+  `yarn build 6432.55s user 192.58s system 102% cpu 1:47:40.75 total`
