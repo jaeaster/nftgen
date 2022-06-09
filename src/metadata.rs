@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::layer::Layer;
 use serde::{Deserialize, Serialize};
 
@@ -70,5 +72,34 @@ impl MetadataBuilder {
             format!("{}/{}.png", base_uri, id),
             attributes,
         )
+    }
+}
+
+pub struct MetadataWriter<'a> {
+    path: &'a Path,
+}
+
+impl<'a> MetadataWriter<'a> {
+    pub fn new(path: &'a Path) -> MetadataWriter<'a> {
+        MetadataWriter { path }
+    }
+
+    pub fn write(&self, metadata: &Metadata, filename: &str) -> eyre::Result<()> {
+        let metadata_json = serde_json::to_string(&metadata)?;
+        let metadata_file_path = self.path.join(format!("{}", filename));
+        log::debug!(
+            "Writing metadata to file: {}",
+            metadata_file_path.to_string_lossy()
+        );
+        std::fs::write(&metadata_file_path, metadata_json)?;
+        log::debug!(
+            "Saved metadata to file: {}",
+            metadata_file_path.to_string_lossy()
+        );
+        Ok(())
+    }
+
+    pub fn update_image(&self) -> eyre::Result<()> {
+        Ok(())
     }
 }

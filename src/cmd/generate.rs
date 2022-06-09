@@ -5,6 +5,7 @@ use clap::Parser;
 use rayon::prelude::*;
 
 use crate::cmd::Cmd;
+use crate::metadata::MetadataWriter;
 use crate::{image_builder::ImageBuilder, layer::get_layer_groups, metadata::MetadataBuilder};
 
 #[derive(Debug, Clone, Parser)]
@@ -67,7 +68,6 @@ impl Cmd for GenerateArgs {
             .into_par_iter()
             .map(|n| {
                 let image_file_path = images_path.as_path().join(format!("{}.png", n));
-                let metadata_file_path = metadata_path.as_path().join(format!("{}", n));
 
                 let (nft, layers) = ImageBuilder::build(&layer_groups);
                 let metadata = MetadataBuilder::build(
@@ -78,8 +78,6 @@ impl Cmd for GenerateArgs {
                     &self.layers_order,
                     &layers,
                 );
-
-                let metadata_json = serde_json::to_string(&metadata)?;
 
                 log::debug!(
                     "Writing image to file: {}",
@@ -92,15 +90,7 @@ impl Cmd for GenerateArgs {
                     Err(e) => eyre::bail!(e),
                 };
 
-                log::debug!(
-                    "Writing metadata to file: {}",
-                    metadata_file_path.to_string_lossy()
-                );
-                fs::write(&metadata_file_path, metadata_json)?;
-                log::debug!(
-                    "Saved metadata to file: {}",
-                    metadata_file_path.to_string_lossy()
-                );
+                MetadataWriter::new(&metadata_path).write(&metadata, &n.to_string())?;
 
                 counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                 log::info!("Saved {:?} / {} NFTs", counter, self.num);
