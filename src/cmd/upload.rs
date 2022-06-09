@@ -3,12 +3,13 @@ use std::process::{Output, Stdio};
 use clap::Parser;
 use eyre::Context;
 use futures::future::BoxFuture;
-use reqwest::Client;
 use std::path::{Path, PathBuf};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::{Child, Command};
 
 use crate::cmd::Cmd;
+use crate::metadata::MetadataWriter;
+use crate::nftstorage;
 
 #[derive(Debug, Clone, Parser)]
 pub struct UploadArgs {
@@ -58,14 +59,14 @@ impl UploadArgs {
 
         let cid = parse_cid_from_ipfs_add_output(&ipfs_add_output)?;
 
+        log::info!("Updating base_uri with cid: {}", cid);
+        MetadataWriter::new(metadata_path.as_path()).update_base_uri_for_all_images(&cid)?;
+
         log::info!("Running `ipfs dag export {}`", cid);
         run_ipfs_dag_export(&cid, &car_file_path).await?;
 
         log::info!("Uploading images to NFT.Storage");
-        upload_images_to_nft_storage(&car_file_path, &api_key).await?;
-
-        // log::info!("Updating metadata with image directory CID");
-        // update_metadata(&metadata_path, &cid).await?;
+        nftstorage::upload_images_to_nft_storage(&car_file_path, &api_key).await?;
 
         // log::info!("Uploading metadata to NFT.Storage");
         // upload_metadata_to_nft_storage(&car_file_path, &api_key).await?;
@@ -141,31 +142,3 @@ async fn run_ipfs_dag_export(cid: &str, car_file_path: &Path) -> eyre::Result<()
             car_file_path.display()
         ))
 }
-
-async fn upload_images_to_nft_storage(car_file_path: &Path, api_key: &str) -> eyre::Result<()> {
-    let car_file_contents = tokio::fs::read(car_file_path).await?;
-    let client = Client::new();
-    let builder = client
-        .post("https://api.nft.storage/upload")
-        .bearer_auth(api_key)
-        .header("Content-Type", "application/car")
-        .body(car_file_contents);
-
-    builder
-        .send()
-        .await?
-        .error_for_status()
-        .wrap_err("Failed to upload images to NFT.Storage")?;
-
-    Ok(())
-}
-
-// {
-//     Ok(response) => {
-//         log::info!("Uploaded images to NFT.Storage");
-//         log::info!("Response: {:?}", response);
-//     }
-//     Err(e) => {
-//         log::error!("Error: {:?}", e);
-//     }
-// }

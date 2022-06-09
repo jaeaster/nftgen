@@ -1,11 +1,14 @@
-use std::path::Path;
+use std::{fs::read_dir, path::Path};
 
 use crate::layer::Layer;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+
+static IPFS_URI_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"ipfs://.*/").unwrap());
 
 /// The high level metadata representation of the NFT collection.
 /// - ```description```: Description of the NFT collection.
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Metadata<'a> {
     pub description: &'a str,
@@ -99,7 +102,22 @@ impl<'a> MetadataWriter<'a> {
         Ok(())
     }
 
-    pub fn update_image(&self) -> eyre::Result<()> {
+    pub fn update_base_uri_for_all_images(&self, base_uri: &str) -> eyre::Result<()> {
+        let entries = read_dir(self.path)?
+            .map(|entry| entry.unwrap())
+            .map(|entry| entry.path());
+
+        for metadata_file_path in entries {
+            let metadata_json = std::fs::read_to_string(&metadata_file_path)?;
+            let mut metadata: Metadata = serde_json::from_str(&metadata_json)?;
+            let new_image_uri =
+                IPFS_URI_REGEX.replace_all(&metadata.image, &format!("ipfs://{}/", base_uri));
+            metadata.image = new_image_uri.to_string();
+            self.write(
+                &metadata,
+                &metadata_file_path.file_name().unwrap().to_str().unwrap(),
+            )?;
+        }
         Ok(())
     }
 }
