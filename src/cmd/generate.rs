@@ -18,7 +18,7 @@ pub struct GenerateArgs {
     #[clap(short, long, default_value="./layers", value_hint = clap::ValueHint::DirPath)]
     pub layers_path: PathBuf,
 
-    /// path to root directory of NFT layers
+    /// path to the output directory for images and metadata
     #[clap(short, long, default_value="./nftgen-output", value_hint = clap::ValueHint::DirPath)]
     pub output_path: PathBuf,
 
@@ -38,10 +38,6 @@ pub struct GenerateArgs {
     /// Description for the collection
     #[clap(short, long)]
     pub description: String,
-
-    /// Base URI for assets in the collection
-    #[clap(short, long)]
-    pub base_uri: String,
 }
 
 impl Cmd for GenerateArgs {
@@ -74,7 +70,6 @@ impl Cmd for GenerateArgs {
                     n as u32,
                     &self.description,
                     &self.collection_name,
-                    &self.base_uri,
                     &self.layers_order,
                     &layers,
                 );

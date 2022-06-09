@@ -1,6 +1,22 @@
 # nftgen
 
-A CLI tool and library for generating NFT images and metadata from layers of PNGs
+## Overview
+
+A CLI tool for generating NFTs and hosting them for free w/ IPFS and [NFT.Storage](https://nft.storage/)
+
+nftgen provides two key utilities:
+
+- Generate NFT images and metadata by layering PNGs (traits) with provided rarities
+- Upload this data to IPFS and store permanently for free via [NFT.Storage](https://nft.storage/), a service provided by [Protocol Labs](https://protocol.ai/)
+
+## Dependencies
+
+nftgen is written entirely in Rust, except for functionality related to IPFS and packaging data into Content Archives.
+This may change in the future once the [Rust IPFS implementation](https://github.com/rs-ipfs/rust-ipfs) matures.
+
+As a result, if you want to use the `nftgen upload` subcommand, you must install an official [ipfs command line implementation](https://docs.ipfs.io/install/command-line/#official-distributions) and ensure it is in your path.
+
+You will also need to create an account and generate an API key for [NFT.Storage](https://nft.storage/) if you want to use `nftgen upload`
 
 ## Installation
 
@@ -13,41 +29,49 @@ rustup-init
 git clone git@github.com:diligentcodoor/nftgen.git
 cd nftgen
 
+# Install ipfs CLI - See above
+
 # Build the executable
 cargo build --release
 
-ls ./target/release/nftgen
+./target/release/nftgen --help
 ```
 
 ## Usage
 
 ```bash
+nftgen 0.1.0
+Generate images and metadata for NFTs by layering PNGs together
+
 USAGE:
-    nftgen [OPTIONS] --num <NUM> --layers-path <LAYERS_PATH> --output-path <OUTPUT_PATH> --collection-name <COLLECTION_NAME> --description <DESCRIPTION> --base-uri <BASE_URI>
+    nftgen <SUBCOMMAND>
 
 OPTIONS:
-    -b, --base-uri <BASE_URI>                  Base URI for assets in the collection
-    -c, --collection-name <COLLECTION_NAME>    Name of the collection
-    -d, --description <DESCRIPTION>            Description for the collection
-    -h, --help                                 Print help information
-    -l, --layers-path <LAYERS_PATH>            path to root directory of NFT layers
-        --layers-order <LAYERS_ORDER>...       Order of NFT layers from back to front
-    -n, --num <NUM>                            Number of NFTs to generate
-    -o, --output-path <OUTPUT_PATH>            path to root directory of NFT layers
-    -V, --version                              Print version information
+    -h, --help       Print help information
+    -V, --version    Print version information
+
+SUBCOMMANDS:
+    generate    Generate nft images and metadata [aliases: g]
+    help        Print this message or the help of the given subcommand(s)
+    upload      Upload nft images and metadata to IPFS [aliases: u]
 ```
 
 ## Example
 
 ```bash
-nftgen
+nftgen generate
   --num=10000
   --layers-path=layers
   --output-path=output
   --layers-order=Background,Face,Nose
   --collection-name=The best collection
   --description=A very descriptive text of the best collection
-  --base-uri=ipfs://123234
+```
+
+```bash
+nftgen upload
+  --api-key=SuperSecretNftStorageKey
+  --output-path=output
 ```
 
 ## Config File
@@ -87,5 +111,4 @@ output
 --layers-order=Background,Face,Nose
 --collection-name=Dope Collection Name
 --description=A very cool collection
---base-uri=ipfs://123
 ```

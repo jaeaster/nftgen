@@ -9,7 +9,7 @@ use crate::nftstorage;
 
 #[derive(Debug, Clone, Parser)]
 pub struct UploadArgs {
-    /// path to root directory of NFT layers
+    /// path to the output directory of NFT images and metadata
     #[clap(short, long, default_value="./nftgen-output", value_hint = clap::ValueHint::DirPath)]
     pub output_path: PathBuf,
 

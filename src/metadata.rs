@@ -57,7 +57,6 @@ impl MetadataBuilder {
         id: u32,
         description: &'a str,
         collection_name: &'a str,
-        base_uri: &'a str,
         ordered_layers: &Vec<String>,
         layers: &Vec<&'a Layer>,
     ) -> Metadata<'a> {
@@ -72,7 +71,7 @@ impl MetadataBuilder {
         Metadata::new(
             description,
             format!("{} #{}", collection_name, id),
-            format!("{}/{}.png", base_uri, id),
+            format!("ipfs://placeholder/{}.png", id),
             attributes,
         )
     }
