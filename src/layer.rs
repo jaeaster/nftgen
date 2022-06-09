@@ -3,7 +3,6 @@ use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 
 use color_eyre::eyre;
-use eyre::Context;
 use image::DynamicImage;
 use log;
 use rand::distributions::WeightedIndex;

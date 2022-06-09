@@ -103,6 +103,8 @@ impl<'a> MetadataWriter<'a> {
     }
 
     pub fn update_base_uri_for_all_images(&self, base_uri: &str) -> eyre::Result<()> {
+        log::info!("Updating base_uri for all images with: {}", base_uri);
+
         let entries = read_dir(self.path)?
             .map(|entry| entry.unwrap())
             .map(|entry| entry.path());

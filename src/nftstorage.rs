@@ -1,28 +1,47 @@
 use std::path::Path;
 
 use eyre::Context;
-use reqwest::Client;
 
-pub async fn upload_images_to_nft_storage(car_file_path: &Path, api_key: &str) -> eyre::Result<()> {
-    let car_file_contents = tokio::fs::read(car_file_path).await?;
-    if car_file_contents.len() > 1000 * 1000 * 100 {
-        // TODO: Split CAR file
-        // See https://nft.storage/docs/concepts/car-files/#splitting-cars-for-upload-to-nftstorage
-        eyre::bail!("Car file is too large");
+static NFT_STORAGE_API_URL: &str = "https://api.nft.storage";
+
+pub struct Client {
+    client: reqwest::Client,
+    api_key: String,
+}
+
+impl Client {
+    pub fn new(api_key: String) -> Self {
+        Self {
+            client: reqwest::Client::new(),
+            api_key,
+        }
     }
 
-    let client = Client::new();
-    let builder = client
-        .post("https://api.nft.storage/upload")
-        .bearer_auth(api_key)
-        .header("Content-Type", "application/car")
-        .body(car_file_contents);
+    pub async fn upload_car_to_nft_storage(&self, car_file_path: &Path) -> eyre::Result<()> {
+        log::info!(
+            "Uploading {} to NFT.Storage",
+            car_file_path.to_string_lossy()
+        );
 
-    builder
-        .send()
-        .await?
-        .error_for_status()
-        .wrap_err("Failed to upload images to NFT.Storage")?;
+        let car_file_contents = tokio::fs::read(car_file_path).await?;
+        if car_file_contents.len() > 1000 * 1000 * 100 {
+            // TODO: Split CAR file
+            // See https://nft.storage/docs/concepts/car-files/#splitting-cars-for-upload-to-nftstorage
+            eyre::bail!("Car file is too large");
+        }
 
-    Ok(())
+        let builder = self
+            .client
+            .post(format!("{}/upload", NFT_STORAGE_API_URL).as_str())
+            .bearer_auth(&self.api_key)
+            .header("Content-Type", "application/car")
+            .body(car_file_contents);
+
+        builder.send().await?.error_for_status().wrap_err(format!(
+            "Failed to upload {} to NFT.Storage",
+            car_file_path.display()
+        ))?;
+
+        Ok(())
+    }
 }
