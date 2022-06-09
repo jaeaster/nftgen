@@ -33,13 +33,7 @@ impl Layer {
     }
 
     fn parse_weight_from_file_name(filename: &str) -> eyre::Result<u32> {
-        let weight_str = filename
-            .split_once('#')
-            .unwrap_or(("", ""))
-            .1
-            .split_once('.')
-            .unwrap_or(("", ""))
-            .0;
+        let weight_str = filename.split_once('#').unwrap_or(("", "")).1;
 
         match weight_str.parse::<u32>() {
             Ok(weight) => Ok(weight),
@@ -58,7 +52,7 @@ impl TryFrom<DirEntry> for Layer {
     type Error = eyre::Error;
 
     fn try_from(entry: DirEntry) -> eyre::Result<Self> {
-        if let Some(name) = entry.path().file_name() {
+        if let Some(name) = entry.path().file_stem() {
             match name.to_str() {
                 Some(name) => {
                     if let Ok(image) = image::open(entry.path()) {
