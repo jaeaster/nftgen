@@ -3,6 +3,8 @@
 *layers
 .DS_Store
 config
+config-upload
+go-ipfs
 
 output
 
