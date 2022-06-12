@@ -22,7 +22,7 @@ impl<'a> ImageBuilder<'a> {
         self.layers.push(layer);
     }
 
-    pub fn build(layer_groups: &'a Vec<LayerGroup>) -> (DynamicImage, Vec<&'a Layer>) {
+    pub fn build(layer_groups: &'a [LayerGroup]) -> (DynamicImage, Vec<&'a Layer>) {
         let base = &layer_groups[0].pick().image;
         let width = base.width();
         let height = base.height();

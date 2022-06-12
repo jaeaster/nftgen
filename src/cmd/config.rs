@@ -65,7 +65,7 @@ pub fn args() -> eyre::Result<Vec<OsString>> {
 /// for each line in addition to successfully parsed arguments.
 fn parse<P: AsRef<Path>>(path: P) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)> {
     let path = path.as_ref();
-    match File::open(&path) {
+    match File::open(path) {
         Ok(file) => parse_reader(file),
         Err(err) => Err(From::from(format!("{}: {}", path.display(), err))),
     }

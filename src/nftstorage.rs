@@ -17,7 +17,11 @@ impl Client {
         }
     }
 
-    pub async fn upload_car_to_nft_storage(&self, car_file_path: &Path) -> eyre::Result<()> {
+    pub async fn upload_car_to_nft_storage<P: AsRef<Path>>(
+        &self,
+        car_file_path: P,
+    ) -> eyre::Result<()> {
+        let car_file_path = car_file_path.as_ref();
         log::info!(
             "Uploading {} to NFT.Storage",
             car_file_path.to_string_lossy()

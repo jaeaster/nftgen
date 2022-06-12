@@ -40,13 +40,13 @@ impl UploadArgs {
         let ipfs_cli = ipfs::Cli::new().await?;
 
         let images_cid = ipfs_cli
-            .add(images_path.as_os_str().to_string_lossy().to_string())
+            .add(images_path.as_os_str().to_string_lossy().as_ref())
             .await?;
 
         MetadataWriter::new(metadata_path.as_path()).update_base_uri_for_all_images(&images_cid)?;
 
         let metadata_cid = ipfs_cli
-            .add(metadata_path.as_os_str().to_string_lossy().to_string())
+            .add(metadata_path.as_os_str().to_string_lossy().as_ref())
             .await?;
 
         ipfs_cli

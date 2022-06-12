@@ -1,4 +1,4 @@
-use std::{fs::read_dir, path::Path};
+use std::{fmt::Display, fs::read_dir, path::Path};
 
 use crate::layer::Layer;
 use once_cell::sync::Lazy;
@@ -53,12 +53,12 @@ impl Attribute {
 pub struct MetadataBuilder {}
 
 impl MetadataBuilder {
-    pub fn build<'a>(
+    pub fn build<'a, T: AsRef<str> + Display>(
         id: u32,
         description: &'a str,
-        collection_name: &'a str,
-        ordered_layers: &Vec<String>,
-        layers: &Vec<&'a Layer>,
+        collection_name: &str,
+        ordered_layers: &[T],
+        layers: &[&Layer],
     ) -> Metadata<'a> {
         let attributes: Vec<Attribute> = ordered_layers
             .iter()

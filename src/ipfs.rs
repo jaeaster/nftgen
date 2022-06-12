@@ -16,7 +16,7 @@ impl Cli {
         Ok(Self { daemon: None })
     }
 
-    pub async fn add(&self, output_path: String) -> eyre::Result<String> {
+    pub async fn add(&self, output_path: &str) -> eyre::Result<String> {
         log::info!("Running `ipfs add -r {}`", output_path);
         let add_output = Command::new("ipfs")
             .args(&["add", "-r", &output_path])
@@ -27,7 +27,12 @@ impl Cli {
         Cli::parse_cid_from_ipfs_add_output(&add_output)
     }
 
-    pub async fn dag_export(&self, cid: &str, car_file_path: &Path) -> eyre::Result<()> {
+    pub async fn dag_export<P: AsRef<Path>>(
+        &self,
+        cid: &str,
+        car_file_path: P,
+    ) -> eyre::Result<()> {
+        let car_file_path = car_file_path.as_ref();
         log::info!("Running `ipfs dag export {}`", cid);
         let output = Command::new("ipfs")
             .args(&["dag", "export", cid])

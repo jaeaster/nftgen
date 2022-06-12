@@ -17,7 +17,8 @@ pub struct Layer {
 }
 
 impl Layer {
-    fn parse_layers_from_path(path: &Path) -> eyre::Result<Vec<Layer>> {
+    fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> eyre::Result<Vec<Layer>> {
+        let path = path.as_ref();
         path.read_dir()?
             .collect::<Result<Vec<DirEntry>, _>>()?
             .into_par_iter()
@@ -82,7 +83,11 @@ pub struct LayerGroup {
 }
 
 impl LayerGroup {
-    pub fn new(layer_path: &Path, layers_order: &Vec<String>) -> eyre::Result<Self> {
+    pub fn new<T: AsRef<str>, P: AsRef<Path>>(
+        layer_path: P,
+        layers_order: &[T],
+    ) -> eyre::Result<Self> {
+        let layer_path = layer_path.as_ref();
         let layers = Layer::parse_layers_from_path(layer_path)?;
 
         if let Some(layer_type_str) = layer_path.file_name() {
@@ -106,8 +111,11 @@ impl LayerGroup {
         &self.layers[dist.sample(&mut rng)]
     }
 
-    fn get_order(layer_type: &str, layers_order: &Vec<String>) -> eyre::Result<u8> {
-        match layers_order.iter().position(|layer| *layer == layer_type) {
+    fn get_order<T: AsRef<str>>(layer_type: &str, layers_order: &[T]) -> eyre::Result<u8> {
+        match layers_order
+            .iter()
+            .position(|layer| layer.as_ref() == layer_type)
+        {
             Some(order) => Ok(order as u8),
             None => eyre::bail!("Layer type {} not found in layers order", layer_type),
         }
@@ -126,10 +134,11 @@ impl PartialEq for LayerGroup {
     }
 }
 
-pub fn get_layer_groups(
-    layer_dir_root: &Path,
-    layers_order: &Vec<String>,
+pub fn get_layer_groups<T: AsRef<str>, P: AsRef<Path>>(
+    layer_dir_root: P,
+    layers_order: &[T],
 ) -> eyre::Result<Vec<LayerGroup>> {
+    let layer_dir_root = layer_dir_root.as_ref();
     let layer_dirs = get_layer_dirs(layer_dir_root)?;
     for dir in &layer_dirs {
         log::info!("Found directory of layers: {}", dir.to_string_lossy());
@@ -141,7 +150,8 @@ pub fn get_layer_groups(
         .collect()
 }
 
-fn get_layer_dirs(layer_dir_root: &Path) -> eyre::Result<Vec<PathBuf>> {
+fn get_layer_dirs<P: AsRef<Path>>(layer_dir_root: P) -> eyre::Result<Vec<PathBuf>> {
+    let layer_dir_root = layer_dir_root.as_ref();
     let layer_dirs: Vec<PathBuf> = match layer_dir_root.read_dir() {
         Ok(layers) => layers
             .collect::<Result<Vec<DirEntry>, _>>()?
