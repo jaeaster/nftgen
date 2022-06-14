@@ -65,7 +65,7 @@ impl Cmd for GenerateArgs {
             .map(|n| {
                 let image_file_path = images_path.as_path().join(format!("{}.png", n));
 
-                let (nft, layers) = ImageBuilder::build(&layer_groups);
+                let (nft, layers) = ImageBuilder::build(&layer_groups)?;
                 let metadata = MetadataBuilder::build(
                     n as u32,
                     &self.description,

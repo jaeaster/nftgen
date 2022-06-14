@@ -17,13 +17,14 @@ impl<'a> ImageBuilder<'a> {
         }
     }
 
-    pub fn add(&mut self, layer: &'a Layer) {
-        image::imageops::overlay(&mut self.image, &layer.image, 0, 0);
+    pub fn add(&mut self, layer: &'a Layer) -> eyre::Result<()> {
+        image::imageops::overlay(&mut self.image, &layer.get_image()?, 0, 0);
         self.layers.push(layer);
+        Ok(())
     }
 
-    pub fn build(layer_groups: &'a [LayerGroup]) -> (DynamicImage, Vec<&'a Layer>) {
-        let base = &layer_groups[0].pick().image;
+    pub fn build(layer_groups: &'a [LayerGroup]) -> eyre::Result<(DynamicImage, Vec<&'a Layer>)> {
+        let base = layer_groups.get(0).unwrap().pick().get_image()?;
         let width = base.width();
         let height = base.height();
         log::debug!("Building image with width: {}, height: {}", width, height);
@@ -32,10 +33,10 @@ impl<'a> ImageBuilder<'a> {
         for layer_group in layer_groups.iter() {
             let layer = layer_group.pick();
             log::debug!("Adding layer: {}", layer.name);
-            builder.add(&layer);
+            builder.add(&layer)?;
             log::debug!("Added layer: {}", layer.name);
         }
 
-        (builder.image, builder.layers)
+        Ok((builder.image, builder.layers))
     }
 }

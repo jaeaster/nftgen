@@ -3,6 +3,7 @@ use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 
 use color_eyre::eyre;
+use eyre::Context;
 use image::DynamicImage;
 use log;
 use rand::distributions::WeightedIndex;
@@ -12,11 +13,26 @@ use rayon::prelude::*;
 /// Represents a value for single NFT layer
 pub struct Layer {
     pub name: String,
-    pub image: DynamicImage,
+    image_path: PathBuf,
     weight: u32,
 }
 
 impl Layer {
+    pub fn new(name: &str, image_path: &Path, weight: u32) -> Self {
+        Layer {
+            name: name.to_string(),
+            image_path: image_path.to_owned(),
+            weight,
+        }
+    }
+
+    pub fn get_image(&self) -> eyre::Result<DynamicImage> {
+        image::open(&self.image_path).wrap_err(format!(
+            "Failed to open image: {}",
+            self.image_path.to_str().unwrap_or_default()
+        ))
+    }
+
     fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> eyre::Result<Vec<Layer>> {
         let path = path.as_ref();
         path.read_dir()?
@@ -55,17 +71,11 @@ impl TryFrom<DirEntry> for Layer {
     fn try_from(entry: DirEntry) -> eyre::Result<Self> {
         if let Some(name) = entry.path().file_stem() {
             match name.to_str() {
-                Some(name) => {
-                    if let Ok(image) = image::open(entry.path()) {
-                        Ok(Layer {
-                            name: name.to_string(),
-                            image,
-                            weight: Layer::parse_weight_from_file_name(name)?,
-                        })
-                    } else {
-                        eyre::bail!("Failed to open image: {}", entry.path().display());
-                    }
-                }
+                Some(name) => Ok(Layer::new(
+                    name,
+                    &entry.path(),
+                    Layer::parse_weight_from_file_name(name)?,
+                )),
                 None => eyre::bail!("Invalid layer name: {}", entry.path().display()),
             }
         } else {
