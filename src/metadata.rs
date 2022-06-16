@@ -62,7 +62,11 @@ impl MetadataBuilder {
     ) -> Metadata<'a> {
         let attributes: Vec<Attribute> = ordered_layers
             .iter()
-            .zip(layers.iter().map(|&l| l.name.as_str()))
+            .zip(
+                layers
+                    .iter()
+                    .map(|&l| l.name().expect("Layer name should be valid unicode")),
+            )
             .map(|(layer_type, layer_name)| {
                 Attribute::new(layer_type.to_string(), layer_name.to_string())
             })

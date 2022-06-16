@@ -32,9 +32,9 @@ impl<'a> ImageBuilder<'a> {
 
         for layer_group in layer_groups.iter() {
             let layer = layer_group.pick();
-            log::debug!("Adding layer: {}", layer.name);
+            log::debug!("Adding layer: {}", layer.name().unwrap_or_default());
             builder.add(&layer)?;
-            log::debug!("Added layer: {}", layer.name);
+            log::debug!("Added layer: {}", layer.name().unwrap_or_default());
         }
 
         Ok((builder.image, builder.layers))
