@@ -9,6 +9,7 @@ use crate::Layer;
 
 /// Represents all of the values for a particular NFT layer group
 /// e.g. Background, Foreground, etc.
+#[derive(Debug)]
 pub struct LayerGroup {
     pub layer_type: String,
     layers: Vec<Layer>,

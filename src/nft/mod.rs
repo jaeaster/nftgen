@@ -66,29 +66,32 @@ fn get_layer_dirs<P: AsRef<Path>>(layer_dir_root: P) -> eyre::Result<Vec<PathBuf
 
 #[cfg(test)]
 mod tests {
+    pub mod fixture;
+    use crate::nft::tests::fixture::Fixture;
+
     use super::*;
     use assert_str::assert_str_eq;
-    use std::env::temp_dir;
 
-    static PNG: [u8; 67] = [
-        0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa, 0x0, 0x0, 0x0, 0xd, 0x49, 0x48, 0x44, 0x52,
-        0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1, 0x8, 0x6, 0x0, 0x0, 0x0, 0x1f, 0x15, 0xc4, 0x89,
-        0x0, 0x0, 0x0, 0xa, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x0, 0x1, 0x0, 0x0, 0x5, 0x0,
-        0x1, 0xd, 0xa, 0x2d, 0xb4, 0x0, 0x0, 0x0, 0x0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60,
-        0x82,
-    ];
+    #[test]
+    fn get_layer_groups_works() {
+        let layer_dirs = &["layer1", "layer2"];
+        let fixture = Fixture::create_layers_dirs("minimal.png", layer_dirs);
+
+        let layer_groups = get_layer_groups(&fixture.path, layer_dirs).unwrap();
+
+        assert_eq!(layer_groups.len(), 2);
+        assert!(matches!(
+            layer_groups.iter().find(|lg| lg.layer_type == "layer1"),
+            Some(_)
+        ));
+    }
 
     #[test]
     fn parse_layers_from_path_works() {
-        let tmp = temp_dir().join("layers");
-        std::fs::remove_dir_all(&tmp).expect("Remove tmp layers dir should work in test");
-        std::fs::create_dir(&tmp).expect("Create tmp layers dir should work in test");
-        for i in 0..10 {
-            let image_path = tmp.join(format!("image{}#{}.png", i, i));
-            std::fs::write(&image_path, PNG).expect("Write to tmp should work in test");
-        }
+        let layer_dirs = &["background"];
+        let fixture = Fixture::create_layers_dirs("minimal.png", layer_dirs);
 
-        let layers = parse_layers_from_path(tmp).unwrap();
+        let layers = parse_layers_from_path(fixture.path.join("background")).unwrap();
 
         for i in 0..10 {
             let layer = layers.iter().find(|l| l.weight == i as u32).unwrap();

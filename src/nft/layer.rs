@@ -7,6 +7,7 @@ use image::DynamicImage;
 use log;
 
 /// Represents a value for single NFT layer
+#[derive(Debug)]
 pub struct Layer {
     image_path: PathBuf,
     pub weight: u32,
@@ -72,16 +73,8 @@ impl TryFrom<DirEntry> for Layer {
 mod tests {
     use super::*;
     use assert_str::assert_str_eq;
-    use std::env::temp_dir;
-    static PNG: [u8; 67] = [
-        0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa, 0x0, 0x0, 0x0, 0xd, 0x49, 0x48, 0x44, 0x52,
-        0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x1, 0x8, 0x6, 0x0, 0x0, 0x0, 0x1f, 0x15, 0xc4, 0x89,
-        0x0, 0x0, 0x0, 0xa, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9c, 0x63, 0x0, 0x1, 0x0, 0x0, 0x5, 0x0,
-        0x1, 0xd, 0xa, 0x2d, 0xb4, 0x0, 0x0, 0x0, 0x0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60,
-        0x82,
-    ];
 
-    static INVALID_PNG: [u8; 0] = [];
+    use crate::nft::tests::fixture::Fixture;
 
     #[test]
     fn layer_name_works() {
@@ -112,9 +105,8 @@ mod tests {
 
     #[test]
     fn layer_get_image_works() {
-        let tmp = temp_dir();
-        let image_path = tmp.join("image.png");
-        std::fs::write(&image_path, PNG).expect("Write to tmp should work in test");
+        let fixture = Fixture::create_layers_dirs("minimal.png", &["background"]);
+        let image_path = fixture.path.join("background/image1#1.png");
 
         let layer = Layer::new(&image_path, 5);
         let image = layer.get_image();
@@ -123,9 +115,8 @@ mod tests {
 
     #[test]
     fn layer_get_image_returns_err_for_invalid_png() {
-        let tmp = temp_dir();
-        let image_path = tmp.join("image_err.png");
-        std::fs::write(&image_path, INVALID_PNG).expect("Write to tmp should work in test");
+        let fixture = Fixture::create_layers_dirs("empty.png", &["background"]);
+        let image_path = fixture.path.join("background/image1#1.png");
 
         let layer = Layer::new(&image_path, 5);
         let image = layer.get_image();
