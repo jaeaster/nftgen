@@ -1,5 +1,4 @@
 use color_eyre::eyre;
-use pretty_env_logger;
 
 use nftgen::cmd::{
     opts::{Opts, Subcommands},

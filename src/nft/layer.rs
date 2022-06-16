@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use color_eyre::eyre;
 use eyre::Context;
 use image::DynamicImage;
-use log;
 
 /// Represents a value for single NFT layer
 #[derive(Debug)]

@@ -1,7 +1,6 @@
 use crate::{Layer, LayerGroup};
 
 use image::DynamicImage;
-use log;
 
 pub struct ImageBuilder<'a> {
     pub image: DynamicImage,
@@ -33,7 +32,7 @@ impl<'a> ImageBuilder<'a> {
         for layer_group in layer_groups.iter() {
             let layer = layer_group.pick();
             log::debug!("Adding layer: {}", layer.name().unwrap_or_default());
-            builder.add(&layer)?;
+            builder.add(layer)?;
             log::debug!("Added layer: {}", layer.name().unwrap_or_default());
         }
 

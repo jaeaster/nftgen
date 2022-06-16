@@ -43,10 +43,7 @@ pub struct Attribute {
 impl Attribute {
     /// Returns a ```Attributes``` instance
     pub fn new(trait_type: String, value: String) -> Attribute {
-        Attribute {
-            trait_type: trait_type,
-            value: value,
-        }
+        Attribute { trait_type, value }
     }
 }
 
@@ -92,7 +89,7 @@ impl<'a> MetadataWriter<'a> {
 
     pub fn write(&self, metadata: &Metadata, filename: &str) -> eyre::Result<()> {
         let metadata_json = serde_json::to_string(&metadata)?;
-        let metadata_file_path = self.path.join(format!("{}", filename));
+        let metadata_file_path = self.path.join(filename);
         log::debug!(
             "Writing metadata to file: {}",
             metadata_file_path.to_string_lossy()
@@ -120,7 +117,7 @@ impl<'a> MetadataWriter<'a> {
             metadata.image = new_image_uri.to_string();
             self.write(
                 &metadata,
-                &metadata_file_path.file_name().unwrap().to_str().unwrap(),
+                metadata_file_path.file_name().unwrap().to_str().unwrap(),
             )?;
         }
         Ok(())

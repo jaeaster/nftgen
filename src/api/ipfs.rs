@@ -19,7 +19,7 @@ impl Cli {
     pub async fn add(&self, output_path: &str) -> eyre::Result<String> {
         log::info!("Running `ipfs add -r {}`", output_path);
         let add_output = Command::new("ipfs")
-            .args(&["add", "-r", &output_path])
+            .args(&["add", "-r", output_path])
             .output()
             .await
             .wrap_err("Failed to run `ipfs add`")?;

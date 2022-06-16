@@ -22,6 +22,9 @@ use log;
 // type Result<T> = std::result::Result<T, std::io::Error>;
 type Result<T> = ::std::result::Result<T, Box<dyn error::Error>>;
 
+type Args = Vec<OsString>;
+type Errors = Vec<Box<dyn Error>>;
+
 /// Return a sequence of arguments derived from ripgrep rc configuration files.
 pub fn args() -> eyre::Result<Vec<OsString>> {
     let config_path = match env::var_os("NFTGEN_CONFIG_PATH") {
@@ -42,11 +45,11 @@ pub fn args() -> eyre::Result<Vec<OsString>> {
             );
         }
     };
-    if !errs.is_empty() {
-        for err in errs {
-            eyre::bail!("{}:{}", config_path.display(), err);
-        }
+
+    if let Some(err) = errs.into_iter().next() {
+        eyre::bail!("{}:{}", config_path.display(), err);
     }
+
     log::debug!(
         "{}: arguments loaded from config file: {:?}",
         config_path.display(),
@@ -63,7 +66,7 @@ pub fn args() -> eyre::Result<Vec<OsString>> {
 /// If the file could not be read, then an error is returned. If there was
 /// a problem parsing one or more lines in the file, then errors are returned
 /// for each line in addition to successfully parsed arguments.
-fn parse<P: AsRef<Path>>(path: P) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)> {
+fn parse<P: AsRef<Path>>(path: P) -> Result<(Args, Errors)> {
     let path = path.as_ref();
     match File::open(path) {
         Ok(file) => parse_reader(file),
@@ -82,7 +85,7 @@ fn parse<P: AsRef<Path>>(path: P) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)
 /// If the reader could not be read, then an error is returned. If there was a
 /// problem parsing one or more lines, then errors are returned for each line
 /// in addition to successfully parsed arguments.
-fn parse_reader<R: io::Read>(rdr: R) -> Result<(Vec<OsString>, Vec<Box<dyn Error>>)> {
+fn parse_reader<R: io::Read>(rdr: R) -> Result<(Args, Errors)> {
     let bufrdr = io::BufReader::new(rdr);
     let (mut args, mut errs) = (vec![], vec![]);
     let mut line_number = 0;
