@@ -5,8 +5,7 @@ use clap::Parser;
 use rayon::prelude::*;
 
 use crate::cmd::Cmd;
-use crate::metadata::MetadataWriter;
-use crate::{image_builder::ImageBuilder, layer::get_layer_groups, metadata::MetadataBuilder};
+use crate::nft::{get_layer_groups, ImageBuilder, MetadataBuilder, MetadataWriter};
 
 #[derive(Debug, Clone, Parser)]
 pub struct GenerateArgs {

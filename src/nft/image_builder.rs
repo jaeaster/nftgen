@@ -1,4 +1,4 @@
-use crate::layer::{Layer, LayerGroup};
+use crate::{Layer, LayerGroup};
 
 use image::DynamicImage;
 use log;

@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs::read_dir, path::Path};
 
-use crate::layer::Layer;
+use crate::Layer;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};

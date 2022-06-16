@@ -2,10 +2,10 @@ use clap::Parser;
 use futures::future::BoxFuture;
 use std::path::PathBuf;
 
+use crate::api::ipfs;
+use crate::api::nftstorage;
 use crate::cmd::Cmd;
-use crate::ipfs;
-use crate::metadata::MetadataWriter;
-use crate::nftstorage;
+use crate::nft::MetadataWriter;
 
 #[derive(Debug, Clone, Parser)]
 pub struct UploadArgs {
