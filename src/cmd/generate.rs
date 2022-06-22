@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::{fs, sync::atomic::AtomicU32};
 
 use clap::Parser;
-use rayon::prelude::*;
+// use rayon::prelude::*;
 
 use crate::cmd::Cmd;
 use crate::nft::{get_layer_groups, ImageBuilder, MetadataBuilder, MetadataWriter};
@@ -60,7 +60,7 @@ impl Cmd for GenerateArgs {
         let counter = AtomicU32::new(0);
         log::debug!("Creating Images and Metadata");
         let results: eyre::Result<Vec<()>> = (0..self.num)
-            .into_par_iter()
+            .into_iter()
             .map(|n| {
                 let image_file_path = images_path.as_path().join(format!("{}.png", n));
 
@@ -77,7 +77,7 @@ impl Cmd for GenerateArgs {
                     "Writing image to file: {}",
                     image_file_path.to_string_lossy()
                 );
-                match nft.save_with_format(&image_file_path, image::ImageFormat::Png) {
+                match nft.save(&image_file_path) {
                     Ok(_) => {
                         log::debug!("Saved image to file: {}", image_file_path.to_string_lossy())
                     }

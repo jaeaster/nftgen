@@ -1,14 +1,16 @@
-use rayon::prelude::*;
+// use rayon::prelude::*;
 use std::{
     fs::DirEntry,
     path::{Path, PathBuf},
 };
 
+mod image;
 mod image_builder;
 mod layer;
 mod layer_group;
 mod metadata;
 
+pub use self::image::*;
 pub use image_builder::*;
 pub use layer::*;
 pub use layer_group::*;
@@ -35,7 +37,7 @@ fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> eyre::Result<Vec<Layer>> {
     let path = path.as_ref();
     path.read_dir()?
         .collect::<Result<Vec<DirEntry>, _>>()?
-        .into_par_iter()
+        .into_iter()
         .filter(|l| l.path().extension().unwrap_or_default() == "png")
         .map(|image_file| {
             log::debug!(

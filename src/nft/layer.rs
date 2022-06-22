@@ -3,12 +3,13 @@ use std::path::{Path, PathBuf};
 
 use color_eyre::eyre;
 use eyre::Context;
-use image::DynamicImage;
+
+use crate::{Image, ImagePath};
 
 /// Represents a value for single NFT layer
 #[derive(Debug)]
 pub struct Layer {
-    image_path: PathBuf,
+    pub image_path: PathBuf,
     pub weight: u32,
 }
 
@@ -25,8 +26,8 @@ impl Layer {
         self.image_path.file_stem()?.to_str()?.split('#').next()
     }
 
-    pub fn get_image(&self) -> eyre::Result<DynamicImage> {
-        image::open(&self.image_path).wrap_err(format!(
+    pub fn get_image(&self) -> eyre::Result<Image> {
+        Image::try_from(ImagePath(&self.image_path)).wrap_err(format!(
             "Failed to open image: {}",
             self.image_path.to_str().unwrap_or_default()
         ))
