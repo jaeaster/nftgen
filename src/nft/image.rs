@@ -1,19 +1,7 @@
+use crate::NftgenError;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum ImageError {
-    #[error("Cannot read or write image file")]
-    IO(#[from] std::io::Error),
-
-    #[error("Cannot encode PNG file")]
-    Encode(#[from] png::EncodingError),
-
-    #[error("Cannot decode PNG file")]
-    Decode(#[from] png::DecodingError),
-}
 
 pub struct Image {
     data: Vec<u8>,
@@ -48,7 +36,7 @@ impl Image {
         }
     }
 
-    pub fn save<P: AsRef<Path>>(&self, output_path: P) -> Result<(), ImageError> {
+    pub fn save<P: AsRef<Path>>(&self, output_path: P) -> Result<(), NftgenError> {
         let file = File::create(output_path)?;
         let ref mut w = BufWriter::new(file);
 
@@ -68,7 +56,7 @@ impl<P> TryFrom<ImagePath<P>> for Image
 where
     P: AsRef<Path>,
 {
-    type Error = ImageError;
+    type Error = NftgenError;
 
     fn try_from(image_path: ImagePath<P>) -> Result<Self, Self::Error> {
         let decoder = png::Decoder::new(File::open(image_path.0)?);

@@ -10,6 +10,8 @@ mod layer;
 mod layer_group;
 mod metadata;
 
+use crate::NftgenError;
+
 pub use self::image::*;
 pub use image_builder::*;
 pub use layer::*;
@@ -19,7 +21,7 @@ pub use metadata::*;
 pub fn get_layer_groups<T: AsRef<str>, P: AsRef<Path>>(
     layer_dir_root: P,
     layers_order: &[T],
-) -> eyre::Result<Vec<LayerGroup>> {
+) -> Result<Vec<LayerGroup>, NftgenError> {
     let layer_dir_root = layer_dir_root.as_ref();
     let layer_dirs = get_layer_dirs(layer_dir_root)?;
     for dir in &layer_dirs {
@@ -33,7 +35,7 @@ pub fn get_layer_groups<T: AsRef<str>, P: AsRef<Path>>(
 }
 
 /// Parses layer files within a directory into Layer structs
-fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> eyre::Result<Vec<Layer>> {
+fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> Result<Vec<Layer>, NftgenError> {
     let path = path.as_ref();
     path.read_dir()?
         .collect::<Result<Vec<DirEntry>, _>>()?
@@ -49,21 +51,15 @@ fn parse_layers_from_path<P: AsRef<Path>>(path: P) -> eyre::Result<Vec<Layer>> {
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn get_layer_dirs<P: AsRef<Path>>(layer_dir_root: P) -> eyre::Result<Vec<PathBuf>> {
+fn get_layer_dirs<P: AsRef<Path>>(layer_dir_root: P) -> Result<Vec<PathBuf>, NftgenError> {
     let layer_dir_root = layer_dir_root.as_ref();
-    let layer_dirs: Vec<PathBuf> = match layer_dir_root.read_dir() {
-        Ok(layers) => layers
-            .collect::<Result<Vec<DirEntry>, _>>()?
-            .into_iter()
-            .map(|l| l.path())
-            .filter(|l| l.is_dir())
-            .collect(),
-        Err(_) => eyre::bail!(
-            "Failed to read layers directory: {}",
-            layer_dir_root.to_string_lossy()
-        ),
-    };
-    Ok(layer_dirs)
+    Ok(layer_dir_root
+        .read_dir()?
+        .collect::<Result<Vec<DirEntry>, _>>()?
+        .into_iter()
+        .map(|l| l.path())
+        .filter(|l| l.is_dir())
+        .collect())
 }
 
 #[cfg(test)]

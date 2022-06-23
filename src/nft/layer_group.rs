@@ -5,7 +5,7 @@ use rand::distributions::WeightedIndex;
 use rand::prelude::*;
 
 use crate::nft::parse_layers_from_path;
-use crate::Layer;
+use crate::{Layer, NftgenError};
 
 /// Represents all of the values for a particular NFT layer group
 /// e.g. Background, Foreground, etc.
@@ -20,7 +20,7 @@ impl LayerGroup {
     pub fn new<T: AsRef<str>, P: AsRef<Path>>(
         layer_path: P,
         layers_order: &[T],
-    ) -> eyre::Result<Self> {
+    ) -> Result<Self, NftgenError> {
         let layer_path = layer_path.as_ref();
         let layers = parse_layers_from_path(layer_path)?;
 
@@ -33,7 +33,7 @@ impl LayerGroup {
                 order,
             })
         } else {
-            eyre::bail!("Invalid layer type: {}", layer_path.display());
+            Err(NftgenError::InvalidLayerPath(layer_path.to_owned()))
         }
     }
 
@@ -45,13 +45,13 @@ impl LayerGroup {
         &self.layers[dist.sample(&mut rng)]
     }
 
-    fn get_order<T: AsRef<str>>(layer_type: &str, layers_order: &[T]) -> eyre::Result<u8> {
+    fn get_order<T: AsRef<str>>(layer_type: &str, layers_order: &[T]) -> Result<u8, NftgenError> {
         match layers_order
             .iter()
             .position(|layer| layer.as_ref() == layer_type)
         {
             Some(order) => Ok(order as u8),
-            None => eyre::bail!("Layer type {} not found in layers order", layer_type),
+            None => Err(NftgenError::UnknownLayer(layer_type.to_string())),
         }
     }
 }

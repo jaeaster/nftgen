@@ -1,6 +1,6 @@
 use std::{fmt::Display, fs::read_dir, path::Path};
 
-use crate::Layer;
+use crate::{Layer, NftgenError};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -87,7 +87,7 @@ impl<'a> MetadataWriter<'a> {
         MetadataWriter { path }
     }
 
-    pub fn write(&self, metadata: &Metadata, filename: &str) -> eyre::Result<()> {
+    pub fn write(&self, metadata: &Metadata, filename: &str) -> Result<(), NftgenError> {
         let metadata_json = serde_json::to_string(&metadata)?;
         let metadata_file_path = self.path.join(filename);
         log::debug!(
@@ -102,7 +102,7 @@ impl<'a> MetadataWriter<'a> {
         Ok(())
     }
 
-    pub fn update_base_uri_for_all_images(&self, base_uri: &str) -> eyre::Result<()> {
+    pub fn update_base_uri_for_all_images(&self, base_uri: &str) -> Result<(), NftgenError> {
         log::info!("Updating base_uri for all images with: {}", base_uri);
 
         let entries = read_dir(self.path)?

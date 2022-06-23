@@ -1,10 +1,7 @@
 use std::fs::DirEntry;
 use std::path::{Path, PathBuf};
 
-use color_eyre::eyre;
-use eyre::Context;
-
-use crate::{Image, ImagePath};
+use crate::{Image, ImagePath, NftgenError};
 
 /// Represents a value for single NFT layer
 #[derive(Debug)]
@@ -26,16 +23,14 @@ impl Layer {
         self.image_path.file_stem()?.to_str()?.split('#').next()
     }
 
-    pub fn get_image(&self) -> eyre::Result<Image> {
-        Image::try_from(ImagePath(&self.image_path)).wrap_err(format!(
-            "Failed to open image: {}",
-            self.image_path.to_str().unwrap_or_default()
-        ))
+    /// Reads PNG from `self.image_path` and returns an `Image`
+    pub fn get_image(&self) -> Result<Image, NftgenError> {
+        Image::try_from(ImagePath(&self.image_path))
     }
 
     /// Parses weight from file stem of image file
     /// `filestem` - A stem of a file i.e. filename without extension e.g. red#5
-    fn parse_weight_from_file_stem(filestem: &str) -> eyre::Result<u32> {
+    fn parse_weight_from_file_stem(filestem: &str) -> Result<u32, NftgenError> {
         let weight_str = filestem.split_once('#').unwrap_or(("", "")).1;
 
         match weight_str.parse::<u32>() {
@@ -52,19 +47,19 @@ impl Layer {
 }
 
 impl TryFrom<DirEntry> for Layer {
-    type Error = eyre::Error;
+    type Error = NftgenError;
 
-    fn try_from(entry: DirEntry) -> eyre::Result<Self> {
+    fn try_from(entry: DirEntry) -> Result<Self, Self::Error> {
         if let Some(name) = entry.path().file_stem() {
             match name.to_str() {
                 Some(name) => Ok(Layer::new(
                     &entry.path(),
                     Layer::parse_weight_from_file_stem(name)?,
                 )),
-                None => eyre::bail!("Invalid layer name: {}", entry.path().display()),
+                None => Err(NftgenError::InvalidFilename(entry.path())),
             }
         } else {
-            eyre::bail!("Invalid layer name: {}", entry.path().display());
+            Err(NftgenError::InvalidFilename(entry.path()))
         }
     }
 }

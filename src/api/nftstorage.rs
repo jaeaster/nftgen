@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use eyre::Context;
+use crate::NftgenError;
 
 static NFT_STORAGE_API_URL: &str = "https://api.nft.storage";
 
@@ -20,7 +20,7 @@ impl Client {
     pub async fn upload_car_to_nft_storage<P: AsRef<Path>>(
         &self,
         car_file_path: P,
-    ) -> eyre::Result<()> {
+    ) -> Result<(), NftgenError> {
         let car_file_path = car_file_path.as_ref();
         log::info!(
             "Uploading {} to NFT.Storage",
@@ -31,7 +31,7 @@ impl Client {
         if car_file_contents.len() > 1000 * 1000 * 100 {
             // TODO: Split CAR file
             // See https://nft.storage/docs/concepts/car-files/#splitting-cars-for-upload-to-nftstorage
-            eyre::bail!("Car file is too large");
+            return Err(NftgenError::CarTooLarge(car_file_path.to_owned()));
         }
 
         let builder = self
@@ -41,10 +41,7 @@ impl Client {
             .header("Content-Type", "application/car")
             .body(car_file_contents);
 
-        builder.send().await?.error_for_status().wrap_err(format!(
-            "Failed to upload {} to NFT.Storage",
-            car_file_path.display()
-        ))?;
+        builder.send().await?.error_for_status()?;
 
         Ok(())
     }
