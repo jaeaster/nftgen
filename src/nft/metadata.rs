@@ -34,7 +34,8 @@ impl<'a> Metadata<'a> {
 }
 
 /// Attributes related to the NFT. This is automatically generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
 pub struct Attribute {
     trait_type: String,
     value: String,
@@ -121,5 +122,50 @@ impl<'a> MetadataWriter<'a> {
             )?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod metadata_builder {
+        use super::*;
+
+        #[test]
+        fn build() {
+            let metadata = MetadataBuilder::build(
+                3,
+                "Great nft collection",
+                "JustGreat",
+                &["background", "face", "eyes"],
+                &[
+                    &Layer::new("red#2.png", 5),
+                    &Layer::new("smile#5.png", 5),
+                    &Layer::new("squint#5.png", 5),
+                ],
+            );
+
+            assert_eq!(metadata.name, "JustGreat #3");
+            assert_eq!(metadata.description, "Great nft collection");
+            assert_eq!(metadata.image, "ipfs://placeholder/3.png");
+            assert_eq!(
+                metadata.attributes,
+                vec![
+                    Attribute {
+                        trait_type: "background".to_string(),
+                        value: "red".to_string(),
+                    },
+                    Attribute {
+                        trait_type: "face".to_string(),
+                        value: "smile".to_string(),
+                    },
+                    Attribute {
+                        trait_type: "eyes".to_string(),
+                        value: "squint".to_string(),
+                    },
+                ]
+            );
+        }
     }
 }

@@ -1,5 +1,5 @@
 use std::fs::DirEntry;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use crate::{Image, ImagePath, NftgenError};
 
@@ -11,9 +11,9 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn new(image_path: &Path, weight: u32) -> Self {
+    pub fn new<P: Into<PathBuf>>(image_path: P, weight: u32) -> Self {
         Layer {
-            image_path: image_path.to_owned(),
+            image_path: image_path.into(),
             weight,
         }
     }
