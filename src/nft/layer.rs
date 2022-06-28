@@ -1,7 +1,7 @@
 use std::fs::DirEntry;
 use std::path::PathBuf;
 
-use crate::{Image, ImagePath, NftgenError};
+use crate::{Image, NftgenError};
 
 /// Represents a value for single NFT layer
 #[derive(Debug)]
@@ -25,7 +25,7 @@ impl Layer {
 
     /// Reads PNG from `self.image_path` and returns an `Image`
     pub fn get_image(&self) -> Result<Image, NftgenError> {
-        Image::try_from(ImagePath(&self.image_path))
+        Image::read(&self.image_path)
     }
 
     /// Parses weight from file stem of image file
