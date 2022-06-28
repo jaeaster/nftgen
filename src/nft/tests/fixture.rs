@@ -12,7 +12,7 @@ pub struct Fixture {
 }
 
 impl Fixture {
-    fn blank(fixture_filename: &str) -> Self {
+    pub fn blank(fixture_filename: &str) -> Self {
         // First, figure out the right file in `tests/fixtures/`:
         let root_dir = &std::env::var("CARGO_MANIFEST_DIR").expect("$CARGO_MANIFEST_DIR");
         let mut source = PathBuf::from(root_dir);

@@ -9,7 +9,7 @@ static IPFS_URI_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"ipfs://.*/").unwr
 
 /// The high level metadata representation of the NFT collection.
 /// - ```description```: Description of the NFT collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Metadata<'a> {
     pub description: &'a str,
     pub name: String,
@@ -84,11 +84,17 @@ pub struct MetadataWriter<'a> {
 }
 
 impl<'a> MetadataWriter<'a> {
-    pub fn new(path: &'a Path) -> MetadataWriter<'a> {
-        MetadataWriter { path }
+    pub fn new<P: AsRef<Path> + ?Sized>(path: &'a P) -> MetadataWriter<'a> {
+        MetadataWriter {
+            path: path.as_ref(),
+        }
     }
 
-    pub fn write(&self, metadata: &Metadata, filename: &str) -> Result<(), NftgenError> {
+    pub fn write<P: AsRef<Path>>(
+        &self,
+        metadata: &Metadata,
+        filename: P,
+    ) -> Result<(), NftgenError> {
         let metadata_json = serde_json::to_string(&metadata)?;
         let metadata_file_path = self.path.join(filename);
         log::debug!(
@@ -166,6 +172,51 @@ mod tests {
                     },
                 ]
             );
+        }
+    }
+
+    mod metadata_writer {
+        use crate::nft::tests::fixture::Fixture;
+
+        use super::*;
+
+        #[test]
+        fn write_and_update_base_uri() {
+            let fixture = Fixture::blank("");
+            let metadata_path = fixture.path.join("5.json");
+            let writer = MetadataWriter::new(&fixture.path);
+
+            let metadata = Metadata::new(
+                "Some description",
+                "Lame collection #5".to_string(),
+                "ipfs://placeholder/5.png".to_string(),
+                vec![
+                    Attribute {
+                        trait_type: "background".to_string(),
+                        value: "red".to_string(),
+                    },
+                    Attribute {
+                        trait_type: "face".to_string(),
+                        value: "smile".to_string(),
+                    },
+                    Attribute {
+                        trait_type: "eyes".to_string(),
+                        value: "squint".to_string(),
+                    },
+                ],
+            );
+
+            writer.write(&metadata, "5.json").unwrap();
+            let metadata_bytes = &std::fs::read(&metadata_path).unwrap();
+            let updated_metadata: Metadata = serde_json::from_slice(metadata_bytes).unwrap();
+            assert_eq!(metadata, updated_metadata);
+
+            writer
+                .update_base_uri_for_all_images("bussin-ipfs-cid")
+                .unwrap();
+            let metadata_bytes = &std::fs::read(&metadata_path).unwrap();
+            let updated_metadata: Metadata = serde_json::from_slice(metadata_bytes).unwrap();
+            assert_eq!(updated_metadata.image, "ipfs://bussin-ipfs-cid/5.png");
         }
     }
 }
