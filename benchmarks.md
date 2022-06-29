@@ -23,16 +23,6 @@ The speedup is ~1.4x on a machine with a single core.
 
 ## Results
 
-| N      | Tool     | Clock Time (s) |
-| ------ | -------- | -------------- |
-| 10     | nftgen   | 2.859          |
-| 10     | Hashlips | 5.999          |
-| 100    | nftgen   | 21.988         |
-| 100    | Hashlips | 66.15          |
-| 1,000  | nftgen   | 221.53         |
-| 1,000  | Hashlips | 647.88         |
-| 10,000 | nftgen   | 3302.88        |
-| 10,000 | Hashlips | 6460.75        |
 
 ### Hyperfine Command
 
@@ -134,7 +124,18 @@ Summary
     1.32 ± 0.01 times faster than 'hashlips'
 ```
 
-## Results from an unoptimized version of nftgen
+## Results from an older, unoptimized version of nftgen
+
+| N      | Tool     | Clock Time (s) |
+| ------ | -------- | -------------- |
+| 10     | nftgen   | 2.859          |
+| 10     | Hashlips | 5.999          |
+| 100    | nftgen   | 21.988         |
+| 100    | Hashlips | 66.15          |
+| 1,000  | nftgen   | 221.53         |
+| 1,000  | Hashlips | 647.88         |
+| 10,000 | nftgen   | 3302.88        |
+| 10,000 | Hashlips | 6460.75        |
 
 ### N = 10
 
