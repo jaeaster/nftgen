@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use crate::{Image, NftgenError};
 
 /// Represents a value for single NFT layer
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Layer {
     pub image_path: PathBuf,
     pub weight: u32,
